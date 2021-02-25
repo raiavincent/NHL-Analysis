@@ -3,6 +3,7 @@ from sportsipy.nhl.roster import Player
 from sportsipy.nhl.roster import Roster
 import pandas as pd
 from datetime import datetime
+from nhlCols import cols
 
 startTime = datetime.now()
 
@@ -33,7 +34,7 @@ season_df_init = 0
 career_df_init = 0
 season_df = 0
 career_df = 0
-years = ['2020']
+years = ['2021']
 # iterate through years.
 for year in years:
     print('\n' + str(year))
@@ -89,5 +90,15 @@ for year in years:
                 # add player to players_collected
                 players_collected.append(player_id)
                 print(player.name)
+
+season_df = season_df[cols]
+season2021 = season_df[season_df['year'] == '2021']
+season2021 = season2021.sort_values(by='name',ascending=True)
+
+season_df = season_df.loc[:,~season_df.columns.duplicated()]
+season2021 = season2021.loc[:,~season2021.columns.duplicated()]
+season2021 = season2021.loc[:, (season2021 != 0).any(axis=0)]
+
+dateString = datetime.strftime(datetime.now(), '%Y_%m_%d')
 
 print(datetime.now()-startTime)
