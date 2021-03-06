@@ -3,7 +3,6 @@ from sportsipy.nhl.teams import Teams
 import pandas as pd
 from datetime import datetime
 from nhlColsTeam import cols
-import importlib
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
 
@@ -64,10 +63,12 @@ for abbr in abbr_list:
 ga_df = ga_df.assign(team=abbr_list)
 ga_df = ga_df.assign(goals_against=ga_list)
 
-# ga_df = ga_df.sort_values(by='team',ascending=True)
-# league_df = league_df.sort_values(by='abbreviation',ascending=True)
+ga_df = ga_df.sort_values(by='team',ascending=True)
+league_df = league_df.sort_values(by='abbreviation',ascending=True)
 
-league_df = league_df.drop(['goals_against'],axis=1)
+
+league_df = (league_df.drop(
+    ['goals_against','pdo_at_even_strength','total_goals_per_game'],axis=1))
 
 # league_df['goals_against'] = ga_df['goals_against']
 league_df = league_df.assign(goals_against=ga_list)
@@ -76,6 +77,12 @@ exponent = 2.19
 gamesInSeason = 82
 decimals = 0
 
-league_df['EWP'] = (league_df['goals_for']**exponent)/(((league_df['goals_for']**exponent)+league_df['goals_against']**exponent))
+league_df['EWP'] = ((league_df['goals_for']**exponent)/
+                    (((league_df['goals_for']**exponent)+
+                      league_df['goals_against']**exponent)))
+
+league_df.reset_index(drop=True, inplace=True)
+
+league_df = league_df[cols]
 
 print(datetime.now()-startTime)

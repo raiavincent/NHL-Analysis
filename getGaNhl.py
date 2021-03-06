@@ -18,7 +18,7 @@ def getGa():
         
         html = urlopen(url)
         
-        soup = BeautifulSoup(html)
+        soup = BeautifulSoup(html,features="lxml")
         
         # get column headers with findAll()
         soup.findAll('tr',limit=2)
@@ -46,5 +46,7 @@ def getGa():
     
     ga_df = ga_df.assign(team=abbr_list)
     ga_df = ga_df.assign(goals_against=ga_list)
+    
+    return ga_list
 
 getGa()
