@@ -66,23 +66,57 @@ ga_df = ga_df.assign(goals_against=ga_list)
 ga_df = ga_df.sort_values(by='team',ascending=True)
 league_df = league_df.sort_values(by='abbreviation',ascending=True)
 
-
 league_df = (league_df.drop(
     ['goals_against','pdo_at_even_strength','total_goals_per_game'],axis=1))
 
-# league_df['goals_against'] = ga_df['goals_against']
 league_df = league_df.assign(goals_against=ga_list)
 
+# define variables for EWP calculation
 exponent = 2.19
 gamesInSeason = 82
 decimals = 0
 
-league_df['EWP'] = ((league_df['goals_for']**exponent)/
-                    (((league_df['goals_for']**exponent)+
-                      league_df['goals_against']**exponent)))
+league_df['EWP'] = round(((league_df['goals_for']**exponent)/
+((league_df['goals_for']**exponent)+(league_df['goals_against']**exponent))),2)
+league_df['PW'] = league_df['games_played'] * league_df['EWP']
+league_df['PW'] = league_df['PW'].apply(lambda x: round(x, decimals))
+league_df['PL'] = league_df['games_played'] * (1-league_df['EWP'])
+league_df['PL'] = league_df['PL'].apply(lambda x: round(x, decimals))
+league_df['PW Season'] = gamesInSeason * league_df['EWP']
+league_df['PW Season'] = league_df['PW Season'].apply(lambda x: round(x, 
+                                                                      decimals))
+league_df['PL Season'] = gamesInSeason * (1-league_df['EWP'])
+league_df['PL Season'] = league_df['PL Season'].apply(lambda x: round(x, 
+                                                                      decimals))
+league_df['Ahead/Behind'] = league_df['wins'] - league_df['PW']
 
 league_df.reset_index(drop=True, inplace=True)
 
 league_df = league_df[cols]
+
+league_df = (league_df.rename(columns={'wins':'W','losses':'L',
+                                       'overtime_losses':'OL',
+                                       'games_played':'GP',
+                                       'average_age':'AvAge',
+                                       'goals_for':'GF',
+                                       'points':'PTS',
+                                       'penalty_killing_percentage':'PK%',
+                                       'points_percentage':'PTS%',
+                                       'power_play_goals':'PP',
+                                       'power_play_goals_against':'PPA',
+                                       'power_play_opportunities':'PPO',
+                                       'power_play_opportunities_against':'PPOA',
+                                       'power_play_percentage':'PP%',
+                                       'rank':'Rank',
+                                       'save_percentage':'SV%',
+                                       'shooting_percentage':'S%',
+                                       'short_handed_goals':'SH',
+                                       'short_handed_goals_against':'SHA',
+                                       'shots_against':'SA',
+                                       'shots_on_goal':'S',
+                                       'simple_rating_system':'SRS',
+                                       'strength_of_schedule':'SOS',
+                                       'goals_against':'GA'
+                                       }))
 
 print(datetime.now()-startTime)
