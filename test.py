@@ -3,13 +3,11 @@ from sportsipy.nhl.teams import Teams
 import pandas as pd
 from datetime import datetime
 from nhlColsTeam import cols,correctNames
+from urllib.request import urlopen
+from bs4 import BeautifulSoup
 import getGaNhl
-import importlib
-from datetime import datetime
 
 startTime = datetime.now()
-
-importlib.reload(getGaNhl)
 
 teams = Teams(year='2021')
 
@@ -56,33 +54,3 @@ league_df = (league_df.drop(
 ga_df = ga_df.set_index(league_df.index)
 goals_against = ga_df['goals_against']
 league_df = league_df.join(goals_against)
-
-# define variables for EWP calculation
-exponent = 2.19
-gamesInSeason = 82
-decimals = 0
-
-league_df['EWP'] = round(((league_df['goals_for']**exponent)/
-((league_df['goals_for']**exponent)+(league_df['goals_against']**exponent))),2)
-league_df['PW'] = league_df['games_played'] * league_df['EWP']
-league_df['PW'] = league_df['PW'].apply(lambda x: round(x, decimals))
-league_df['PL'] = league_df['games_played'] * (1-league_df['EWP'])
-league_df['PL'] = league_df['PL'].apply(lambda x: round(x, decimals))
-league_df['PW Season'] = gamesInSeason * league_df['EWP']
-league_df['PW Season'] = league_df['PW Season'].apply(lambda x: round(x, 
-                                                                      decimals))
-league_df['PL Season'] = gamesInSeason * (1-league_df['EWP'])
-league_df['PL Season'] = league_df['PL Season'].apply(lambda x: round(x, 
-                                                                      decimals))
-league_df['Ahead/Behind'] = league_df['wins'] - league_df['PW']
-
-league_df.reset_index(drop=True, inplace=True)
-
-league_df = league_df[cols]
-
-league_df = league_df.set_axis(correctNames,axis=1,inplace=False)
-
-dateString = datetime.strftime(datetime.now(), '%Y_%m_%d')
-league_df.to_csv('Team Stats {dateString}.csv',index=False)
-
-print(datetime.now()-startTime)
