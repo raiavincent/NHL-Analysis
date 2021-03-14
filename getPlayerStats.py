@@ -4,6 +4,7 @@ from sportsipy.nhl.roster import Roster
 import pandas as pd
 from datetime import datetime
 from nhlCols import cols
+import os
 
 startTime = datetime.now()
 
@@ -21,10 +22,13 @@ def get_player_df(player):
     
     # get player df and add some extra info
     player_df = player.dataframe # establish dataframe
-    player_df['player_id'] = player.player_id # player_id field is populated with player_id
+    # player_id field is populated with player_id
+    player_df['player_id'] = player.player_id 
     player_df['name'] = player.name # name field gets player name
-    player_df['year'] = [get_year(ix) for ix in player_df.index] # year field gets the year of each season pulled
-    player_df.set_index('player_id', drop = True, inplace = True) # this was 'id' before but i dont want id
+    # year field gets the year of each season pulled
+    player_df['year'] = [get_year(ix) for ix in player_df.index] 
+    # this was 'id' before but i dont want id
+    player_df.set_index('player_id', drop = True, inplace = True)
     
     return player_df
 
@@ -100,5 +104,9 @@ season2021 = season2021.loc[:,~season2021.columns.duplicated()]
 season2021 = season2021.loc[:, (season2021 != 0).any(axis=0)]
 
 dateString = datetime.strftime(datetime.now(), '%Y_%m_%d')
+os.chdir(r'C:\Users\Vincent\Documents\GitHub\NHL-Analysis\Player Data\Season')
+season2021.to_csv(f'Season stats as of {dateString}.csv')
+os.chdir(r'C:\Users\Vincent\Documents\GitHub\NHL-Analysis\Player Data\Career')
+career_df.to_csv(f'Active Player Career Stats as of {dateString}.csv')
 
 print(datetime.now()-startTime)
