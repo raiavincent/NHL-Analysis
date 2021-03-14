@@ -104,9 +104,11 @@ season2021 = season2021.loc[:,~season2021.columns.duplicated()]
 season2021 = season2021.loc[:, (season2021 != 0).any(axis=0)]
 
 dateString = datetime.strftime(datetime.now(), '%Y_%m_%d')
-os.chdir(r'C:\Users\Vincent\Documents\GitHub\NHL-Analysis\Player Data\Season')
+# os.chdir(r'C:\Users\Vincent\Documents\GitHub\NHL-Analysis\Player Data\Season')
+os.chdir(r'/home/pi/Documents/NHL-Analysis/Player Data/Career')
 season2021.to_csv(f'Season stats as of {dateString}.csv')
-os.chdir(r'C:\Users\Vincent\Documents\GitHub\NHL-Analysis\Player Data\Career')
+# os.chdir(r'C:\Users\Vincent\Documents\GitHub\NHL-Analysis\Player Data\Career')
+os.chdir(r'/home/pi/Documents/NHL-Analysis/Player Data/Season')
 career_df.to_csv(f'Active Player Career Stats as of {dateString}.csv')
 
 print(datetime.now()-startTime)
