@@ -55,5 +55,5 @@ def getGa(abbr):
     
     return (ga_list)
 
-for abbr in abbr_list:
-    getGa(abbr)
+if __name__ == '__main__':
+    getGa()
