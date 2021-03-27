@@ -41,7 +41,10 @@ def getGa(abbr):
     all_stats = [[td.getText() for td in rows[i].findAll('td')]
                 for i in range(len(rows))]
     
-    team_stats = all_stats[0]
+    all_stats2 = [e for e in all_stats if e]
+    all_stats3=[x for x in all_stats2 if len(x)>3]
+    
+    team_stats = all_stats3[0]
     
     goals_against = team_stats[8]
     
