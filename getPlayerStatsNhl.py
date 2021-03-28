@@ -3,7 +3,7 @@ from sportsipy.nhl.roster import Player
 from sportsipy.nhl.roster import Roster
 import pandas as pd
 from datetime import datetime
-from nhlCols import cols
+from nhlCols import seasonCols, careerCols
 import gspread
 from nhlSecrets import nhlPlayerFolderId, playerDashboardURL
 from nhlSecrets import nhlCareerFolderId, careerDashboardURL
@@ -99,9 +99,10 @@ for year in years:
                 players_collected.append(player_id)
                 print(player.name)
 
-# TODO Order career_df columns.
+# Done Order career_df columns.
 
-season_df = season_df[cols]
+season_df = season_df[seasonCols]
+career_df = career_df[careerCols]
 season2021 = season_df[season_df['year'] == '2021']
 season2021 = season2021.sort_values(by='name',ascending=True)
 
