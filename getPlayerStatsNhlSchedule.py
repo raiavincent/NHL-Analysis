@@ -3,15 +3,19 @@ from sportsipy.nhl.roster import Player
 from sportsipy.nhl.roster import Roster
 import pandas as pd
 from datetime import datetime
-import os
+from nhlCols import seasonCols, careerCols
+import gspread
+from nhlSecrets import nhlPlayerFolderId, playerDashboardURL
+from nhlSecrets import nhlCareerFolderId, careerDashboardURL
 import schedule
 import time
 
 print('Running getPlayerStatsNhl.py')
 
 def getStats():
+    # Done Add gspread functionality.
+
     startTime = datetime.now()
-    from nhlCols import cols
     
     # Function to get player info from Player class object.
     def get_player_df(player):
@@ -66,55 +70,97 @@ def getStats():
                                          player_info['year'] != "Career"]
                         player_career = player_info[
                                         player_info['year'] == "Career"]
-                    except:
+                    except Exception:
                         pass
                     # create season_df if not initialized
                     if not season_df_init:
                         try:
                             season_df = player_seasons
                             season_df_init = 1
-                        except:
+                        except Exception:
                             pass
                     # else concatenate to season_df
                     else:
                         try:
                             season_df = pd.concat([season_df,
                                            player_seasons], axis = 0)
-                        except:
+                        except Exception:
                             pass
                     if not career_df_init:
                         try:
                             career_df = player_career
                             career_df_init = 1
-                        except:
+                        except Exception:
                             pass
                     # else concatenate to career_df
                     else:
                         try:
                             career_df = pd.concat([career_df,
                                            player_career], axis = 0)
-                        except:
+                        except Exception:
                             pass
     
                     # add player to players_collected
                     players_collected.append(player_id)
                     print(player.name)
     
-    season_df = season_df[cols]
+    # Done Order career_df columns.
+    
+    season_df = season_df[seasonCols]
+    career_df = career_df[careerCols]
     season2021 = season_df[season_df['year'] == '2021']
     season2021 = season2021.sort_values(by='name',ascending=True)
     
     season_df = season_df.loc[:,~season_df.columns.duplicated()]
     season2021 = season2021.loc[:,~season2021.columns.duplicated()]
     season2021 = season2021.loc[:, (season2021 != 0).any(axis=0)]
+    # need to fill NA values as it was causing errors for gspread
+    season2021.fillna('', inplace=True)
+    career_df.fillna('',inplace=True)
     
     dateString = datetime.strftime(datetime.now(), '%Y_%m_%d')
-    # os.chdir(r'C:\Users\Vincent\Documents\GitHub\NHL-Analysis\Player Data\Season')
-    os.chdir(r'/home/pi/Documents/NHL-Analysis/Player Data/Career')
-    season2021.to_csv(f'Season stats as of {dateString}.csv')
-    # os.chdir(r'C:\Users\Vincent\Documents\GitHub\NHL-Analysis\Player Data\Career')
-    os.chdir(r'/home/pi/Documents/NHL-Analysis/Player Data/Season')
-    career_df.to_csv(f'Active Player Career Stats as of {dateString}.csv')
+    
+    # gc authorizes and lets us access the spreadsheets
+    gc = gspread.oauth()
+    
+    # create the workbook where the day's data will go
+    # add in folder_id to place it in the folder we want
+    shP = gc.create(f'2021 Player Data as of {dateString}',folder_id=nhlPlayerFolderId)
+    shC = gc.create(f'Active Player Career Data as of {dateString}',folder_id=nhlCareerFolderId)
+    
+    # access the first sheet of that newly created workbook
+    worksheetP = shP.get_worksheet(0)
+    worksheetC = shC.get_worksheet(0)
+    
+    # edit the worksheet with the created dataframe for the day's data
+    worksheetP.update([season2021.columns.values.tolist()] + season2021.values.tolist())
+    worksheetC.update([career_df.columns.values.tolist()] + career_df.values.tolist())
+    
+    # open the main workbook with that workbook's url
+    dbP = gc.open_by_url(playerDashboardURL)
+    dbC = gc.open_by_url(careerDashboardURL)
+    
+    # changed this over to the second sheet so the dashboard can be the first sheet
+    # dbws is the database worksheet, as in the main workbook that is updated and
+    # used to analyze and pick from
+    dbwsP = dbP.get_worksheet(1)
+    dbwsC = dbC.get_worksheet(1)
+    
+    # below clears the sheet so it can be overwritten with updates
+    # z1000 is probably overkill but would rather over kill than underkill
+    range_of_cells = dbwsP.range('A1:Z1000')
+    for cell in range_of_cells:
+        cell.value = ''
+    dbwsP.update_cells(range_of_cells)
+    
+    range_of_cells = dbwsC.range('A1:Z1000')
+    for cell in range_of_cells:
+        cell.value = ''
+    dbwsC.update_cells(range_of_cells)
+    
+    # update the sheet in the database workbook with the df
+    dbwsP.update([season2021.columns.values.tolist()] + season2021.values.tolist())
+    dbwsC.update([career_df.columns.values.tolist()] + career_df.values.tolist())
     
     print(datetime.now()-startTime)
 
