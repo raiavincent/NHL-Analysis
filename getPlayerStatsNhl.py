@@ -99,7 +99,7 @@ for year in years:
                 players_collected.append(player_id)
                 print(player.name)
 
-# TODO: Order career_df columns.
+# TODO Order career_df columns.
 
 season_df = season_df[cols]
 season2021 = season_df[season_df['year'] == '2021']
