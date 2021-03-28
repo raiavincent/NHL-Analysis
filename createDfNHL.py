@@ -6,7 +6,7 @@ import getGaNhl
 import importlib
 from datetime import datetime
 import gspread
-from nhlSecrets import nhlTeamFolderId, dashboardURL
+from nhlSecrets import nhlTeamFolderId, teamDashboardURL
 
 # Done implement gspread functionality
 
@@ -136,7 +136,7 @@ worksheet = sh.get_worksheet(0)
 worksheet.update([league_df.columns.values.tolist()] + league_df.values.tolist())
 
 # open the main workbook with that workbook's url
-db = gc.open_by_url(dashboardURL)
+db = gc.open_by_url(teamDashboardURL)
 
 # changed this over to the second sheet so the dashboard can be the first sheet
 # dbws is the database worksheet, as in the main workbook that is updated and
