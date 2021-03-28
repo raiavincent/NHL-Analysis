@@ -6,6 +6,7 @@ import getGaNhl
 import importlib
 from datetime import datetime
 import os
+import gspread
 
 # TODO implement gspread functionality
 
