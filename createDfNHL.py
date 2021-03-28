@@ -7,6 +7,8 @@ import importlib
 from datetime import datetime
 import os
 
+# TODO implement gspread functionality
+
 startTime = datetime.now()
 
 print('Running createDfNhl.py')
