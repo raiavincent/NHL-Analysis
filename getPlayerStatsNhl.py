@@ -6,6 +6,7 @@ from datetime import datetime
 from nhlCols import cols
 import os
 import gspread
+from nhlSecrets import nhlPlayerFolderId, playerDashboardURL
 
 # TODO Add gspread functionality.
 
@@ -107,19 +108,13 @@ season2021 = season2021.loc[:,~season2021.columns.duplicated()]
 season2021 = season2021.loc[:, (season2021 != 0).any(axis=0)]
 
 dateString = datetime.strftime(datetime.now(), '%Y_%m_%d')
-os.chdir(r'C:\Users\Vincent\Documents\GitHub\NHL-Analysis\Player Data\Season')
-# os.chdir(r'/home/pi/Documents/NHL-Analysis/Player Data/Career')
-season2021.to_csv(f'Season stats as of {dateString}.csv')
-os.chdir(r'C:\Users\Vincent\Documents\GitHub\NHL-Analysis\Player Data\Career')
-# os.chdir(r'/home/pi/Documents/NHL-Analysis/Player Data/Career')
-career_df.to_csv(f'Active Player Career Stats as of {dateString}.csv')
 
 # gc authorizes and lets us access the spreadsheets
 gc = gspread.oauth()
 
 # create the workbook where the day's data will go
 # add in folder_id to place it in the folder we want
-sh = gc.create(f'Value Stocks as of {dateString}',folder_id=valueStockFolderId)
+sh = gc.create(f'2021 Player Data as of {dateString}',folder_id=nhlPlayerFolderId)
 
 # access the first sheet of that newly created workbook
 worksheet = sh.get_worksheet(0)
@@ -128,7 +123,7 @@ worksheet = sh.get_worksheet(0)
 worksheet.update([season2021.columns.values.tolist()] + season2021.values.tolist())
 
 # open the main workbook with that workbook's url
-db = gc.open_by_url(dashboardURL)
+db = gc.open_by_url(playerDashboardURL)
 
 # changed this over to the second sheet so the dashboard can be the first sheet
 # dbws is the database worksheet, as in the main workbook that is updated and
