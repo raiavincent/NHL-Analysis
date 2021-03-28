@@ -5,6 +5,9 @@ import pandas as pd
 from datetime import datetime
 from nhlCols import cols
 import os
+import gspread
+
+# TODO Add gspread functionality.
 
 startTime = datetime.now()
 
@@ -61,34 +64,34 @@ for year in years:
                                      player_info['year'] != "Career"]
                     player_career = player_info[
                                     player_info['year'] == "Career"]
-                except:
+                except Exception:
                     pass
                 # create season_df if not initialized
                 if not season_df_init:
                     try:
                         season_df = player_seasons
                         season_df_init = 1
-                    except:
+                    except Exception:
                         pass
                 # else concatenate to season_df
                 else:
                     try:
                         season_df = pd.concat([season_df,
                                        player_seasons], axis = 0)
-                    except:
+                    except Exception:
                         pass
                 if not career_df_init:
                     try:
                         career_df = player_career
                         career_df_init = 1
-                    except:
+                    except Exception:
                         pass
                 # else concatenate to career_df
                 else:
                     try:
                         career_df = pd.concat([career_df,
                                        player_career], axis = 0)
-                    except:
+                    except Exception:
                         pass
 
                 # add player to players_collected
@@ -110,5 +113,36 @@ season2021.to_csv(f'Season stats as of {dateString}.csv')
 os.chdir(r'C:\Users\Vincent\Documents\GitHub\NHL-Analysis\Player Data\Career')
 # os.chdir(r'/home/pi/Documents/NHL-Analysis/Player Data/Career')
 career_df.to_csv(f'Active Player Career Stats as of {dateString}.csv')
+
+# gc authorizes and lets us access the spreadsheets
+gc = gspread.oauth()
+
+# create the workbook where the day's data will go
+# add in folder_id to place it in the folder we want
+sh = gc.create(f'Value Stocks as of {dateString}',folder_id=valueStockFolderId)
+
+# access the first sheet of that newly created workbook
+worksheet = sh.get_worksheet(0)
+
+# edit the worksheet with the created dataframe for the day's data
+worksheet.update([season2021.columns.values.tolist()] + season2021.values.tolist())
+
+# open the main workbook with that workbook's url
+db = gc.open_by_url(dashboardURL)
+
+# changed this over to the second sheet so the dashboard can be the first sheet
+# dbws is the database worksheet, as in the main workbook that is updated and
+# used to analyze and pick from
+dbws = db.get_worksheet(1)
+
+# below clears the stock sheet so it can be overwritten with updates
+# z1000 is probably overkill but would rather over kill than underkill
+range_of_cells = dbws.range('A1:Z1000')
+for cell in range_of_cells:
+    cell.value = ''
+dbws.update_cells(range_of_cells)
+
+# update the stock spreadsheet in the database workbook with the df
+dbws.update([season2021.columns.values.tolist()] + season2021.values.tolist())
 
 print(datetime.now()-startTime)
