@@ -4,11 +4,11 @@ from sportsipy.nhl.roster import Roster
 import pandas as pd
 from datetime import datetime
 from nhlCols import cols
-import os
 import gspread
 from nhlSecrets import nhlPlayerFolderId, playerDashboardURL
+from nhlSecrets import nhlCareerFolderId, careerDashboardURL
 
-# TODO Add gspread functionality.
+# Done Add gspread functionality.
 
 startTime = datetime.now()
 
@@ -106,6 +106,9 @@ season2021 = season2021.sort_values(by='name',ascending=True)
 season_df = season_df.loc[:,~season_df.columns.duplicated()]
 season2021 = season2021.loc[:,~season2021.columns.duplicated()]
 season2021 = season2021.loc[:, (season2021 != 0).any(axis=0)]
+# need to fill NA values as it was causing errors for gspread
+season2021.fillna('', inplace=True)
+career_df.fillna('',inplace=True)
 
 dateString = datetime.strftime(datetime.now(), '%Y_%m_%d')
 
@@ -114,30 +117,41 @@ gc = gspread.oauth()
 
 # create the workbook where the day's data will go
 # add in folder_id to place it in the folder we want
-sh = gc.create(f'2021 Player Data as of {dateString}',folder_id=nhlPlayerFolderId)
+shP = gc.create(f'2021 Player Data as of {dateString}',folder_id=nhlPlayerFolderId)
+shC = gc.create(f'Active Player Career Data as of {dateString}',folder_id=nhlCareerFolderId)
 
 # access the first sheet of that newly created workbook
-worksheet = sh.get_worksheet(0)
+worksheetP = shP.get_worksheet(0)
+worksheetC = shC.get_worksheet(0)
 
 # edit the worksheet with the created dataframe for the day's data
-worksheet.update([season2021.columns.values.tolist()] + season2021.values.tolist())
+worksheetP.update([season2021.columns.values.tolist()] + season2021.values.tolist())
+worksheetC.update([career_df.columns.values.tolist()] + career_df.values.tolist())
 
 # open the main workbook with that workbook's url
-db = gc.open_by_url(playerDashboardURL)
+dbP = gc.open_by_url(playerDashboardURL)
+dbC = gc.open_by_url(careerDashboardURL)
 
 # changed this over to the second sheet so the dashboard can be the first sheet
 # dbws is the database worksheet, as in the main workbook that is updated and
 # used to analyze and pick from
-dbws = db.get_worksheet(1)
+dbwsP = dbP.get_worksheet(1)
+dbwsC = dbC.get_worksheet(1)
 
-# below clears the stock sheet so it can be overwritten with updates
+# below clears the sheet so it can be overwritten with updates
 # z1000 is probably overkill but would rather over kill than underkill
-range_of_cells = dbws.range('A1:Z1000')
+range_of_cells = dbwsP.range('A1:Z1000')
 for cell in range_of_cells:
     cell.value = ''
-dbws.update_cells(range_of_cells)
+dbwsP.update_cells(range_of_cells)
 
-# update the stock spreadsheet in the database workbook with the df
-dbws.update([season2021.columns.values.tolist()] + season2021.values.tolist())
+range_of_cells = dbwsC.range('A1:Z1000')
+for cell in range_of_cells:
+    cell.value = ''
+dbwsC.update_cells(range_of_cells)
+
+# update the sheet in the database workbook with the df
+dbwsP.update([season2021.columns.values.tolist()] + season2021.values.tolist())
+dbwsC.update([career_df.columns.values.tolist()] + career_df.values.tolist())
 
 print(datetime.now()-startTime)
