@@ -150,7 +150,7 @@ for cell in range_of_cells:
     cell.value = ''
 dbws.update_cells(range_of_cells)
 
-# update the stock spreadsheet in the database workbook with the stock_df
+# update the spreadsheet in the database workbook with the df
 dbws.update([league_df.columns.values.tolist()] + league_df.values.tolist())
 
 print('Script complete.')

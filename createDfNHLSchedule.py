@@ -5,16 +5,19 @@ from datetime import datetime
 import getGaNhl
 import importlib
 from datetime import datetime
-import os
+import gspread
+from nhlSecrets import nhlTeamFolderId, teamDashboardURL
 import schedule
 import time
 
 print('Running createDfNHL.py')
     
 def createDf():
+    # Done implement gspread functionality
+
     startTime = datetime.now()
     
-    print('Running createDfNHL.py')
+    print('Running createDfNhl.py')
     importlib.reload(getGaNhl)
     from nhlColsTeam import cols,correctNames
     
@@ -120,16 +123,44 @@ def createDf():
     league_df = league_df.set_axis(correctNames,axis=1,inplace=False)
     
     print('Saving to dataframe.')
-    # save to csv with date dataframe was created
+    # get current date to append to sheet name
     dateString = datetime.strftime(datetime.now(), '%Y_%m_%d')
-    # os.chdir(r'C:\Users\Vincent\Documents\GitHub\NHL-Analysis\Team Data')
-    os.chdir(r'/home/pi/Documents/NHL-Analysis')
-    league_df.to_csv(f'Team Stats {dateString}.csv',index=False)
+    
+    # gc authorizes and lets us access the spreadsheets
+    gc = gspread.oauth()
+    
+    # create the workbook where the day's data will go
+    # add in folder_id to place it in the folder we want
+    sh = gc.create(f'NHL Team Data as of {dateString}',folder_id=nhlTeamFolderId)
+    
+    # access the first sheet of that newly created workbook
+    worksheet = sh.get_worksheet(0)
+    
+    # edit the worksheet with the created dataframe for the day's data
+    worksheet.update([league_df.columns.values.tolist()] + league_df.values.tolist())
+    
+    # open the main workbook with that workbook's url
+    db = gc.open_by_url(teamDashboardURL)
+    
+    # changed this over to the second sheet so the dashboard can be the first sheet
+    # dbws is the database worksheet, as in the main workbook that is updated and
+    # used to analyze and pick from
+    dbws = db.get_worksheet(1)
+    
+    # below clears the stock sheet so it can be overwritten with updates
+    # z1000 is probably overkill but would rather over kill than underkill
+    range_of_cells = dbws.range('A1:Z1000')
+    for cell in range_of_cells:
+        cell.value = ''
+    dbws.update_cells(range_of_cells)
+    
+    # update the stock spreadsheet in the database workbook with the stock_df
+    dbws.update([league_df.columns.values.tolist()] + league_df.values.tolist())
     
     print('Script complete.')
     print(datetime.now()-startTime)
 
-schedule.every().day.at("04:50").do(createDf)
+schedule.every().day.at("05:00").do(createDf)
 
 while True:
     schedule.run_pending()
