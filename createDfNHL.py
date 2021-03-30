@@ -16,7 +16,6 @@ print('Running createDfNhl.py')
 importlib.reload(getGaNhl)
 from nhlColsTeam import cols,correctNames
 
-
 teams = Teams(year='2021')
 
 # get list of teams to iterate over
