@@ -31,8 +31,11 @@ def get_player_df(player):
     player_df['name'] = player.name # name field gets player name
     # year field gets the year of each season pulled
     player_df['year'] = [get_year(ix) for ix in player_df.index] 
-    # this was 'id' before but i dont want id
+    player_df['id'] = [player_id + ' ' + year for player_id,
+                   year in zip(player_df['player_id'],
+                   player_df['year'])]
     player_df.set_index('player_id', drop = True, inplace = True)
+    
     
     return player_df
 
