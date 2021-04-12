@@ -1,4 +1,4 @@
-seasonCols = ['id','name','height','weight',
+seasonCols = ['name','height','weight',
   'team_abbreviation',
  'year',
  'adjusted_assists',
@@ -88,7 +88,7 @@ seasonCols = ['id','name','height','weight',
  'total_shots',
  'wins']
 
-careerCols = ['id','name','adjusted_assists',
+careerCols = ['name','adjusted_assists',
  'adjusted_goals',
  'adjusted_goals_against_average',
  'adjusted_goals_created',
