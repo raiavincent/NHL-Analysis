@@ -10,6 +10,20 @@ for team in teams:
 
 # https://towardsdatascience.com/web-scraping-nba-stats-4b4f8c525994
 def getGa(abbr):
+    '''
+    Sportsipy module was having a hard time pulling goals against for each team,
+    so this function is necessary and imported to createDfNHL.py.
+    Parameters
+    ----------
+    abbr : str
+        Needs the team abbreviation to know which team to pull the stat for.
+
+    Returns
+    -------
+    ga_list : list
+        A list of goals against for each team in the league.
+
+    '''
     ga_df = pd.DataFrame()
     
     # teams = Teams(year='2021')
